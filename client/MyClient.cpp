@@ -37,6 +37,7 @@ int MyClient::createSocket(string IP, int port)
 		return 2;
 	}
 	cout << "Socket is good" << endl;
+	return 0;
 }
 
 int MyClient::setPort(int port)
