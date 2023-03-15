@@ -3,20 +3,28 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <tchar.h>
+#include <thread>
 using namespace std;
+#define MAXIMUM_CONNECTIONS 10
 
 class MyServer
 {
 public:
-	int runServer(string IP, int port);
+	MyServer(string IP, int port);
+	int runServer();
 
 private:
 	int setPort(int port);
 	int setIP(string IP);
-	int createSocket(string IP, int port);
-	int listenAndCommunicate();
+	int createSocket();
+	int makeConnection();
+	int communicate(SOCKET currSocket, int ID);
+	int listenToClient();
 
-	SOCKET srvSocket, acceptSocket;
+	SOCKET srvSocket;
+	SOCKET sockets[MAXIMUM_CONNECTIONS];
+	bool IDs[MAXIMUM_CONNECTIONS];
+	int nextID = 0;
 	WSADATA wsaData;
 	int wsaerr;
 	int port;

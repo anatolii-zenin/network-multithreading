@@ -3,6 +3,6 @@
 
 int main()
 {
-    MyServer* svr = new MyServer();
-    svr->runServer("127.0.0.1", 10015);
+    MyServer* svr = new MyServer("127.0.0.1", 10015);
+    svr->runServer();
 }

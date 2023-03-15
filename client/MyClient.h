@@ -8,12 +8,14 @@ using namespace std;
 class MyClient
 {
 public:
-	int runClient(string IP, int port);
+	MyClient(string IP, int port);
+	int runClient();
 
 private:
 	int setPort(int port);
 	int setIP(string IP);
-	int createSocket(string IP, int port);
+	int createSocket();
+	int makeConnection();
 	int communicate();
 
 	SOCKET clientSocket;
