@@ -23,7 +23,8 @@ private:
 
 	SOCKET srvSocket;
 	SOCKET sockets[MAXIMUM_CONNECTIONS];
-	bool IDs[MAXIMUM_CONNECTIONS];
+	thread t[MAXIMUM_CONNECTIONS];
+	int max_conns = MAXIMUM_CONNECTIONS;
 	int nextID = 0;
 	WSADATA wsaData;
 	int wsaerr;

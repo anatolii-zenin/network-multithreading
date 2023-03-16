@@ -12,7 +12,6 @@ int MyServer::runServer()
 {
 	cout << "----Starting the server----" << endl;
 	this->createSocket();
-	this->makeConnection();
 	this->listenToClient();
 	return 0;
 }
@@ -91,12 +90,14 @@ int MyServer::makeConnection()
 
 int MyServer::listenToClient()
 {
-	while (1)
+	const int max_conns = this->max_conns;
+	for (int i = 0; i < max_conns; i++)
 	{
-		thread t = std::thread([this] { this->makeConnection(); });
-		t.join();
-		if (this->nextID == 0)
-			break;
+		this->t[i] = std::thread([this] { this->makeConnection(); });
+	}
+	for (int i = 0; i < max_conns; i++)
+	{
+		this->t[i].join();
 	}
 	cout << "all clients disconnected" << endl;
 	system("pause");
@@ -126,7 +127,8 @@ int MyServer::communicate(SOCKET currSocket, int ID)
 			cout << "Confirmation sent" << endl;
 		else
 		{
-			cout << "System: Failed to send the confirmation" << endl;
+			cout << "System: Failed to send the confirmation. Connection lost." << endl;
+			break;
 		}
 
 		if (string(buffer) == string("/disconnect"))
