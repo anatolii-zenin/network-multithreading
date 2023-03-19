@@ -15,9 +15,10 @@ ThreadManager::~ThreadManager()
 	this->waitAllDone();
 }
 
-void ThreadManager::startThread(std::function<int(SOCKET*)> fun, SOCKET* sock)
+void ThreadManager::startThread(std::function<int(SOCKET)> fun, SOCKET sock)
 {
 	std::thread t = std::thread(fun, sock);
+	t.detach();
 	//fun(sock);
 	//this->threadList.Append();
 }

@@ -8,7 +8,7 @@
 class ThreadManager
 {
 public:
-	void startThread(std::function<int(SOCKET*)> fun, SOCKET* sock);
+	void startThread(std::function<int(SOCKET)> fun, SOCKET sock);
 	int stopAll();
 	void waitAllDone();
 	typedef std::list<std::thread>::iterator iterator;

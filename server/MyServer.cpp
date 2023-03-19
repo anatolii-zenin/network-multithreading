@@ -85,7 +85,7 @@ int MyServer::listenToClient()
 			return 4;
 		}
 		cout << "accepted connection" << endl;
-		this->manager.startThread(this->communicate, &currSocket);
+		this->manager.startThread(this->communicate, currSocket);
 		//enter control section for the server. for now only one command - /shutdown
 		//cout << "sending disconnection signals" << endl;
 		// this->threadManager->disconnectAll();
@@ -97,14 +97,14 @@ int MyServer::listenToClient()
 	return 0;
 }
 
-int MyServer::communicate(SOCKET* currSocket)
+int MyServer::communicate(SOCKET currSocket)
 {
 	cout << "----Talk to the client----" << endl;
 	while (1)
 	{
 		const int bufferLen = 200;
 		char buffer[bufferLen] = "";
-		int byteCount = recv(*currSocket, buffer, bufferLen, 0);
+		int byteCount = recv(currSocket, buffer, bufferLen, 0);
 		if (byteCount > 0)
 			cout << "Message received: " << buffer << endl;
 		else
@@ -114,7 +114,7 @@ int MyServer::communicate(SOCKET* currSocket)
 		}
 
 		char confirmation[bufferLen] = "Server: message received";
-		byteCount = send(*currSocket, confirmation, bufferLen, 0);
+		byteCount = send(currSocket, confirmation, bufferLen, 0);
 		if (byteCount > 0)
 			cout << "Confirmation sent" << endl;
 		else
@@ -127,7 +127,7 @@ int MyServer::communicate(SOCKET* currSocket)
 		{
 			cout << "Client has disconnected" << endl;
 			char disconnectConfirmation[bufferLen] = "Server: disconnected";
-			byteCount = send(*currSocket, disconnectConfirmation, bufferLen, 0);
+			byteCount = send(currSocket, disconnectConfirmation, bufferLen, 0);
 			if (byteCount > 0)
 				cout << "Disconnection confirmation sent" << endl;
 			else
