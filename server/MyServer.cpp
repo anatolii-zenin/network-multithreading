@@ -55,7 +55,7 @@ int MyServer::createSocket()
 	this->service.sin_family = AF_INET;
 	inet_pton(AF_INET, this->IP.c_str(), &(this->service.sin_addr.s_addr));
 	this->service.sin_port = htons(port);
-	if (bind(this->srvSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR)
+	if (::bind(this->srvSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR)
 	{
 		cout << "bind failed: " << WSAGetLastError() << endl;
 		closesocket(this->srvSocket);
@@ -67,52 +67,44 @@ int MyServer::createSocket()
 	return 0;
 }
 
-int MyServer::makeConnection()
-{
-	cout << "----Listen----" << endl;
-	int currID = this->nextID;
-	if (listen(this->srvSocket, 1) == SOCKET_ERROR)
-		cout << "listen error: " << WSAGetLastError() << endl;
-	cout << "listening" << endl;
-
-	SOCKET currSocket = this->sockets[currID] = accept(this->srvSocket, NULL, NULL);
-	if (currSocket == INVALID_SOCKET)
-	{
-		cout << "failed to accept connection: " << WSAGetLastError() << endl;
-		WSACleanup();
-		return 4;
-	}
-	this->nextID += 1;
-	this->communicate(currSocket, currID);
-	cout << "accepted connection" << endl;
-	return 0;
-}
 
 int MyServer::listenToClient()
-{
-	const int max_conns = this->max_conns;
-	for (int i = 0; i < max_conns; i++)
+{	
+	while (true)
 	{
-		this->t[i] = std::thread([this] { this->makeConnection(); });
+		cout << "----Listen----" << endl;
+		if (listen(this->srvSocket, this->max_conns) == SOCKET_ERROR)
+			cout << "listen error: " << WSAGetLastError() << endl;
+		cout << "listening" << endl;
+
+		SOCKET currSocket = accept(this->srvSocket, NULL, NULL);
+		if (currSocket == INVALID_SOCKET)
+		{
+			cout << "failed to accept connection: " << WSAGetLastError() << endl;
+			WSACleanup();
+			return 4;
+		}
+		cout << "accepted connection" << endl;
+		this->manager.startThread(this->communicate, &currSocket);
+		//enter control section for the server. for now only one command - /shutdown
+		//cout << "sending disconnection signals" << endl;
+		// this->threadManager->disconnectAll();
+		//cout << "shutting the server down" << endl;
+		// this->control->shutdown;
+		cout << "thread is running?" << endl;
 	}
-	for (int i = 0; i < max_conns; i++)
-	{
-		this->t[i].join();
-	}
-	cout << "all clients disconnected" << endl;
-	system("pause");
 	WSACleanup();
 	return 0;
 }
 
-int MyServer::communicate(SOCKET currSocket, int ID)
+int MyServer::communicate(SOCKET* currSocket)
 {
 	cout << "----Talk to the client----" << endl;
 	while (1)
 	{
 		const int bufferLen = 200;
 		char buffer[bufferLen] = "";
-		int byteCount = recv(currSocket, buffer, bufferLen, 0);
+		int byteCount = recv(*currSocket, buffer, bufferLen, 0);
 		if (byteCount > 0)
 			cout << "Message received: " << buffer << endl;
 		else
@@ -122,7 +114,7 @@ int MyServer::communicate(SOCKET currSocket, int ID)
 		}
 
 		char confirmation[bufferLen] = "Server: message received";
-		byteCount = send(currSocket, confirmation, bufferLen, 0);
+		byteCount = send(*currSocket, confirmation, bufferLen, 0);
 		if (byteCount > 0)
 			cout << "Confirmation sent" << endl;
 		else
@@ -135,15 +127,17 @@ int MyServer::communicate(SOCKET currSocket, int ID)
 		{
 			cout << "Client has disconnected" << endl;
 			char disconnectConfirmation[bufferLen] = "Server: disconnected";
-			byteCount = send(currSocket, disconnectConfirmation, bufferLen, 0);
+			byteCount = send(*currSocket, disconnectConfirmation, bufferLen, 0);
 			if (byteCount > 0)
 				cout << "Disconnection confirmation sent" << endl;
 			else
 				cout << "Failed to send disconnection confirmation" << endl;
 			break;
 		}
+
+		// should send the message to all clients here 
+		// use mutex to avoid sending at the same time and potentially losing messages
 	}
-	this->nextID = ID;
 	cout << "----Disconnect----" << endl;
 
 	return 0;
