@@ -17,8 +17,9 @@ private:
 	int setPort(int port);
 	int setIP(std::string IP);
 	int createSocket();
-	static int communicate(SOCKET currSocket);
+	static int communicate(SOCKET currSocket, unsigned int clientID);
 	int listenToClient();
+	static void parseControlCommands(ThreadManager* manager);
 	ThreadManager manager;
 
 	SOCKET srvSocket;

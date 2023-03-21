@@ -11,6 +11,7 @@ MyServer::MyServer(string IP, int port)
 int MyServer::runServer()
 {
 	cout << "----Starting the server----" << endl;
+	this->manager.runControlThread(this->parseControlCommands);
 	this->createSocket();
 	this->listenToClient();
 	return 0;
@@ -91,13 +92,12 @@ int MyServer::listenToClient()
 		// this->threadManager->disconnectAll();
 		//cout << "shutting the server down" << endl;
 		// this->control->shutdown;
-		cout << "thread is running?" << endl;
 	}
 	WSACleanup();
 	return 0;
 }
 
-int MyServer::communicate(SOCKET currSocket)
+int MyServer::communicate(SOCKET currSocket, unsigned int clientID)
 {
 	cout << "----Talk to the client----" << endl;
 	while (1)
@@ -106,7 +106,7 @@ int MyServer::communicate(SOCKET currSocket)
 		char buffer[bufferLen] = "";
 		int byteCount = recv(currSocket, buffer, bufferLen, 0);
 		if (byteCount > 0)
-			cout << "Message received: " << buffer << endl;
+			cout << clientID << ": " << buffer << endl;
 		else
 		{
 			cout << "Failed to receive the message" << endl;
@@ -125,7 +125,7 @@ int MyServer::communicate(SOCKET currSocket)
 
 		if (string(buffer) == string("/disconnect"))
 		{
-			cout << "Client has disconnected" << endl;
+			cout << "Client " << clientID << " has disconnected" << endl;
 			char disconnectConfirmation[bufferLen] = "Server: disconnected";
 			byteCount = send(currSocket, disconnectConfirmation, bufferLen, 0);
 			if (byteCount > 0)
@@ -141,4 +141,19 @@ int MyServer::communicate(SOCKET currSocket)
 	cout << "----Disconnect----" << endl;
 
 	return 0;
+}
+
+void MyServer::parseControlCommands(ThreadManager* manager)
+{
+	while (1)
+	{
+		const int bufferLen = 200;
+		char buffer[bufferLen] = "";
+		cout << " > ";
+		cin.getline(buffer, bufferLen);
+		if (string(buffer) == string("showclients"))
+		{
+			manager->listThreads();
+		}
+	}
 }
