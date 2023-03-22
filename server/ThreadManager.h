@@ -23,8 +23,7 @@ public:
 
 private:
 	std::map<unsigned int, std::thread*> clientThreads;
-
-	std::condition_variable conditionVar;
-	std::mutex mutex;
+	//std::condition_variable conditionVar;
+	//std::mutex mutex;
 };
 

@@ -2,11 +2,6 @@
 
 void ThreadManager::waitAllDone()
 {
-	std::unique_lock<std::mutex> lock(this->mutex);
-	this->conditionVar.wait(lock, [this]()->bool
-		{
-			return this->clientThreads.empty();
-		});
 
 }
 
