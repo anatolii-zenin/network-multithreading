@@ -161,7 +161,7 @@ void MyServer::parseControlCommands(ThreadManager* manager)
 //void MyServer::distributeMessages(SOCKET currSocket, std::queue<std::string> msgQueue)
 //{
 //	// iterate through the existing clients, wait 5 sec, run the loop again
-//	// should use mutex here to avoid races
+//	// should use mutex here to avoid send/receive races
 //	while (1)
 //	{
 //		const int bufferLen = 200;
