@@ -8,15 +8,17 @@
 #include <vector>
 #include <ranges>
 #include <iostream>
+#include <queue>
 
 class ThreadManager
 {
 public:
-	void startThread(std::function<int(SOCKET, unsigned int)> communicationFunction, SOCKET socket);
+	void runTask(std::function<int(SOCKET, std::queue<std::string>)> task, SOCKET socket, std::queue<std::string> msgQueue);
+	void runTask(std::function<int(SOCKET, unsigned int, std::queue<std::string>)> task, SOCKET socket, std::queue<std::string> msgQueue);
+	void startControlThread(std::function<void(ThreadManager*)> parseControl);
 	int stopAll();
 	void listThreads();
 	void waitAllDone();
-	void runControlThread(std::function<void(ThreadManager*)> parseControl);
 	~ThreadManager();
 
 private:

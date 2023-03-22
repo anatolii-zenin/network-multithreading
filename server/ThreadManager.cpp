@@ -15,12 +15,17 @@ ThreadManager::~ThreadManager()
 	this->waitAllDone();
 }
 
-void ThreadManager::startThread(std::function<int(SOCKET, unsigned int)> communicationFunction, SOCKET socket)
+void ThreadManager::runTask(std::function<int(SOCKET, unsigned int, std::queue<std::string>)> task, SOCKET socket, std::queue<std::string> msgQueue)
 {	
 	unsigned int clientID = rand();
-	std::thread t = std::thread(communicationFunction, socket, clientID);
+	std::thread t = std::thread(task, socket, clientID, msgQueue);
 	this->clientThreads[clientID] = &t;
 	t.detach();
+}
+
+void ThreadManager::runTask(std::function<int(SOCKET, std::queue<std::string>)> task, SOCKET socket, std::queue<std::string> msgQueue)
+{
+
 }
 
 void ThreadManager::listThreads()
@@ -34,7 +39,7 @@ void ThreadManager::listThreads()
 	}
 }
 
-void ThreadManager::runControlThread(std::function<void(ThreadManager*)> parseControl)
+void ThreadManager::startControlThread(std::function<void(ThreadManager*)> parseControl)
 {
 	std::thread t = std::thread(parseControl, this);
 	t.detach();

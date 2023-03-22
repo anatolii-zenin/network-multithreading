@@ -11,7 +11,7 @@ MyServer::MyServer(string IP, int port)
 int MyServer::runServer()
 {
 	cout << "----Starting the server----" << endl;
-	this->manager.runControlThread(this->parseControlCommands);
+	this->manager.startControlThread(this->parseControlCommands);
 	this->createSocket();
 	this->listenToClient();
 	return 0;
@@ -86,7 +86,7 @@ int MyServer::listenToClient()
 			return 4;
 		}
 		cout << "accepted connection" << endl;
-		this->manager.startThread(this->communicate, currSocket);
+		this->manager.runTask(this->talkToClient, currSocket, this->messages);
 		//enter control section for the server. for now only one command - /shutdown
 		//cout << "sending disconnection signals" << endl;
 		// this->threadManager->disconnectAll();
@@ -97,8 +97,9 @@ int MyServer::listenToClient()
 	return 0;
 }
 
-int MyServer::communicate(SOCKET currSocket, unsigned int clientID)
+int MyServer::talkToClient(SOCKET currSocket, unsigned int clientID, std::queue<std::string> msgQueue)
 {
+	// should use mutex here to avoid races
 	cout << "----Talk to the client----" << endl;
 	while (1)
 	{
@@ -112,6 +113,7 @@ int MyServer::communicate(SOCKET currSocket, unsigned int clientID)
 			cout << "Failed to receive the message" << endl;
 			WSACleanup();
 		}
+		msgQueue.push(buffer);
 
 		char confirmation[bufferLen] = "Server: message received";
 		byteCount = send(currSocket, confirmation, bufferLen, 0);
@@ -134,9 +136,6 @@ int MyServer::communicate(SOCKET currSocket, unsigned int clientID)
 				cout << "Failed to send disconnection confirmation" << endl;
 			break;
 		}
-
-		// should send the message to all clients here 
-		// use mutex to avoid sending at the same time and potentially losing messages
 	}
 	cout << "----Disconnect----" << endl;
 
@@ -157,3 +156,21 @@ void MyServer::parseControlCommands(ThreadManager* manager)
 		}
 	}
 }
+
+//// move this to thread manager. also rename the thread manager? or use a different class?
+//void MyServer::distributeMessages(SOCKET currSocket, std::queue<std::string> msgQueue)
+//{
+//	// iterate through the existing clients, wait 5 sec, run the loop again
+//	// should use mutex here to avoid races
+//	while (1)
+//	{
+//		const int bufferLen = 200;
+//		char buffer[bufferLen] = "";
+//		if (msgQueue.size() > 0)
+//		{
+//			string msg = msgQueue.front();
+//			msgQueue.pop();
+//			int byteCount = send(currSocket, msg.c_str(), bufferLen, 0);
+//		}
+//	}
+//}
