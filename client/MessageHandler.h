@@ -8,7 +8,7 @@
 #include <iostream>
 #include <chrono>
 
-class MessageReceiver
+class MessageHandler
 {
 public:
 	void receive(SOCKET clientSocket);

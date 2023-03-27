@@ -1,12 +1,12 @@
-#include "MessageReceiver.h"
+#include "MessageHandler.h"
 
-void MessageReceiver::receive(SOCKET clientSocket)
+void MessageHandler::receive(SOCKET clientSocket)
 {
 	this->runTask(this->receiveMessages, clientSocket);
 	this->runTask(this->printMessages);
 }
 
-void MessageReceiver::receiveMessages(SOCKET clientSocket, std::queue<std::string>* msgQueue)
+void MessageHandler::receiveMessages(SOCKET clientSocket, std::queue<std::string>* msgQueue)
 {
 	while (1)
 	{
@@ -23,19 +23,19 @@ void MessageReceiver::receiveMessages(SOCKET clientSocket, std::queue<std::strin
 	}
 }
 
-void MessageReceiver::runTask(std::function<void(SOCKET, std::queue<std::string>*)> task, SOCKET socket)
+void MessageHandler::runTask(std::function<void(SOCKET, std::queue<std::string>*)> task, SOCKET socket)
 {
 	std::thread t = std::thread(task, socket, &this->messages);
 	t.detach();
 }
 
-void MessageReceiver::runTask(std::function<void(std::queue<std::string>*)> task)
+void MessageHandler::runTask(std::function<void(std::queue<std::string>*)> task)
 {
 	std::thread t = std::thread(task, &this->messages);
 	t.detach();
 }
 
-void MessageReceiver::printMessages(std::queue<std::string>* msgQueue)
+void MessageHandler::printMessages(std::queue<std::string>* msgQueue)
 {
 	while (1)
 	{
