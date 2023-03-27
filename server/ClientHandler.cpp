@@ -12,14 +12,14 @@ ClientHandler::~ClientHandler()
 
 int ClientHandler::addClient(SOCKET currSocket)
 {
-	this->runTask(this->receiveFromClient, currSocket);
+	this->runTask(this->receiveMessages, currSocket);
 	return 0;
 }
 
-void ClientHandler::runTask(std::function<void(SOCKET, unsigned int, std::queue<std::string>*)> task, SOCKET socket)
+void ClientHandler::runTask(std::function<void(SOCKET, unsigned int, std::queue<std::string>*, std::mutex*)> task, SOCKET socket)
 {	
 	unsigned int clientID = rand();
-	std::thread t = std::thread(task, socket, clientID, &this->messages);
+	std::thread t = std::thread(task, socket, clientID, &this->messages, &this->mutex);
 	this->clientThreads[clientID] = &t;
 	this->clientSockets[clientID] = socket;
 	t.detach();
@@ -27,7 +27,7 @@ void ClientHandler::runTask(std::function<void(SOCKET, unsigned int, std::queue<
 
 void ClientHandler::runDistribution()
 {
-	std::thread t = std::thread(this->distributeMessages, &this->messages, &this->clientSockets);
+	std::thread t = std::thread(this->distributeMessages, &this->messages, &this->clientSockets, &this->mutex);
 	t.detach();
 }
 
@@ -47,18 +47,16 @@ void ClientHandler::startControlThread()
 	t.detach();
 }
 
-void ClientHandler::distributeMessages(std::queue<std::string>* msgQueue, std::map<unsigned int, SOCKET>* clientSockets)
+void ClientHandler::distributeMessages(std::queue<std::string>* msgQueue, std::map<unsigned int, SOCKET>* clientSockets, std::mutex* mutex)
 {
-	// iterate through the existing clients, wait 1 sec, run the loop again
-	// should use mutex here to avoid races
-	bool sentFlag = false;
 	while (1)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		auto clientIDKeys = std::ranges::views::keys(*clientSockets);
 		std::vector<unsigned int> clientIDs{ clientIDKeys.begin(), clientIDKeys.end() };
 		if (msgQueue->size() > 0)
 		{
+			mutex->lock();
 			const int bufferLen = 200;
 			char buffer[bufferLen] = "";
 			for (auto ID : clientIDs)
@@ -69,21 +67,20 @@ void ClientHandler::distributeMessages(std::queue<std::string>* msgQueue, std::m
 				while (byteCount == 0 && i < 5 )
 				{
 					byteCount = send(clientSockets->at(ID), msg.c_str(), bufferLen, 0);
-					std::this_thread::sleep_for(std::chrono::milliseconds(500));
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
 					i++;
 				}
-				sentFlag = true;
+				if (byteCount == 0)
+					std::cout << "communication error: failed to distribute a message to client " << ID << std::endl;
 			}
-		}
-		if (sentFlag)
-		{
 			msgQueue->pop();
-			sentFlag = false;
+			mutex->unlock();
 		}
+
 	}
 }
 
-void ClientHandler::receiveFromClient(SOCKET currSocket, unsigned int clientID, std::queue<std::string>* msgQueue)
+void ClientHandler::receiveMessages(SOCKET currSocket, unsigned int clientID, std::queue<std::string>* msgQueue, std::mutex* mutex)
 {
 	// should use mutex here to avoid races
 	std::cout << "----Talk to the client----" << std::endl;
@@ -99,17 +96,9 @@ void ClientHandler::receiveFromClient(SOCKET currSocket, unsigned int clientID, 
 			std::cout << "Failed to receive the message" << std::endl;
 			WSACleanup();
 		}
+		mutex->lock();
 		msgQueue->push(std::to_string(clientID) + ": " + std::string(buffer));
-
-		//char confirmation[bufferLen] = "Server: message received";
-		//byteCount = send(currSocket, confirmation, bufferLen, 0);
-		//if (byteCount > 0)
-		//	std::cout << "Confirmation sent" << std::endl;
-		//else
-		//{
-		//	std::cout << "System: Failed to send the confirmation. Connection lost." << std::endl;
-		//	break;
-		//}
+		mutex->unlock();
 
 		if (std::string(buffer) == std::string("/disconnect"))
 		{
