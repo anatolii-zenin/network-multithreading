@@ -21,7 +21,7 @@
     <ClCompile Include="MyServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ThreadManager.cpp">
+    <ClCompile Include="ClientHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,7 +29,7 @@
     <ClInclude Include="MyServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadManager.h">
+    <ClInclude Include="ClientHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

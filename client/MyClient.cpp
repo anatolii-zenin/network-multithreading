@@ -69,6 +69,7 @@ int MyClient::makeConnection()
 		return 1;
 	}
 	cout << "Client connected" << endl;
+	this->receiver.receive(this->clientSocket);
 	return 0;
 }
 
@@ -82,9 +83,7 @@ int MyClient::communicate()
 		cout << "Type your message > ";
 		cin.getline(buffer, bufferLen);
 		int byteCount = send(this->clientSocket, buffer, bufferLen, 0);
-		if (byteCount > 0)
-			cout << "Message sent" << endl;
-		else
+		if (byteCount == 0)
 		{
 			cout << "Failure" << endl;
 			WSACleanup();
@@ -104,14 +103,14 @@ int MyClient::communicate()
 			break;
 		}
 
-		char confirmation[bufferLen] = "";
-		byteCount = recv(clientSocket, confirmation, bufferLen, 0);
-		if (byteCount > 0)
-			cout << confirmation << endl;
-		else
-		{
-			cout << "Failed to receive the confirmation" << endl;
-		}
+		//char confirmation[bufferLen] = "";
+		//byteCount = recv(clientSocket, confirmation, bufferLen, 0);
+		//if (byteCount > 0)
+		//	cout << confirmation << endl;
+		//else
+		//{
+		//	cout << "Failed to receive the confirmation" << endl;
+		//}
 	}
 
 	cout << "----Close the socket and disconnect----" << endl;
