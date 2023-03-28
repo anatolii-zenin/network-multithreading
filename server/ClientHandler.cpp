@@ -12,11 +12,11 @@ ClientHandler::~ClientHandler()
 
 int ClientHandler::addClient(SOCKET currSocket)
 {
-	this->runTask(this->receiveMessages, currSocket);
+	this->startThread(this->receiveMessages, currSocket);
 	return 0;
 }
 
-void ClientHandler::runTask(std::function<void(SOCKET, unsigned int, std::queue<std::string>*, std::mutex*)> task, SOCKET socket)
+void ClientHandler::startThread(std::function<void(SOCKET, unsigned int, std::queue<std::string>*, std::mutex*)> task, SOCKET socket)
 {	
 	unsigned int clientID = rand();
 	std::thread t = std::thread(task, socket, clientID, &this->messages, &this->mutex);
@@ -63,12 +63,12 @@ void ClientHandler::distributeMessages(std::queue<std::string>* msgQueue, std::m
 			{
 				std::string msg = msgQueue->front();
 				int byteCount = 0;
-				int i = 0;
-				while (byteCount == 0 && i < 5 )
+				int tryNum = 0;
+				while (byteCount == 0 && tryNum < 10 )
 				{
 					byteCount = send(clientSockets->at(ID), msg.c_str(), bufferLen, 0);
 					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-					i++;
+					tryNum++;
 				}
 				if (byteCount == 0)
 					std::cout << "communication error: failed to distribute a message to client " << ID << std::endl;
@@ -109,12 +109,14 @@ void ClientHandler::receiveMessages(SOCKET currSocket, unsigned int clientID, st
 				std::cout << "Disconnection confirmation sent" << std::endl;
 			else
 				std::cout << "Failed to send disconnection confirmation" << std::endl;
+			// FIXME: delete the client from the map
 			break;
 		}
 	}
 	std::cout << "----Disconnect----" << std::endl;
 }
 
+// control thread for various server-side commands
 void ClientHandler::parseControlCommands(ClientHandler* handler)
 {
 	while (1)

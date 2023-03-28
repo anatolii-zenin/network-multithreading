@@ -16,7 +16,6 @@ int MyClient::runClient()
 	cout << "----Starting the server----" << endl;
 	this->createSocket();
 	this->makeConnection();
-	this->communicate();
 	return 0;
 }
 
@@ -68,53 +67,9 @@ int MyClient::makeConnection()
 		WSACleanup();
 		return 1;
 	}
-	cout << "Client connected" << endl;
-	this->receiver.receive(this->clientSocket);
+	cout << "Connected to the server" << endl;
+	this->handler.receive(this->clientSocket);
+	this->handler.send(this->clientSocket);
 	return 0;
 }
 
-int MyClient::communicate()
-{
-	cout << "----Talk to the server----" << endl;
-	while (1)
-	{
-		const int bufferLen = 200;
-		char buffer[bufferLen] = "";
-		cout << "Type your message > ";
-		cin.getline(buffer, bufferLen);
-		int byteCount = send(this->clientSocket, buffer, bufferLen, 0);
-		if (byteCount == 0)
-		{
-			cout << "Failure" << endl;
-			WSACleanup();
-		}
-
-		if (string(buffer) == string("/disconnect"))
-		{
-			cout << "Disconnecting from the server" << endl;
-			char dsConfirmation[bufferLen] = "";
-			byteCount = recv(clientSocket, dsConfirmation, bufferLen, 0);
-			if (dsConfirmation == "Server: disconnected")
-				cout << "Disconnection confirmed" << endl;
-			else
-			{
-				cout << "Failed to receive the disconnection confirmation" << endl;
-			}
-			break;
-		}
-
-		//char confirmation[bufferLen] = "";
-		//byteCount = recv(clientSocket, confirmation, bufferLen, 0);
-		//if (byteCount > 0)
-		//	cout << confirmation << endl;
-		//else
-		//{
-		//	cout << "Failed to receive the confirmation" << endl;
-		//}
-	}
-
-	cout << "----Close the socket and disconnect----" << endl;
-	system("pause");
-	WSACleanup();
-	return 0;
-}

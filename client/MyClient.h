@@ -3,7 +3,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <tchar.h>
-#include "MessageReceiver.h"
+#include "MessageHandler.h"
 
 using namespace std;
 
@@ -18,8 +18,7 @@ private:
 	int setIP(string IP);
 	int createSocket();
 	int makeConnection();
-	int communicate();
-	MessageReceiver receiver;
+	MessageHandler handler;
 
 	SOCKET clientSocket;
 	WSADATA wsaData;

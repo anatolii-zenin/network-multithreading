@@ -86,11 +86,6 @@ int MyServer::listenToClient()
 		}
 		std::cout << "accepted connection" << std::endl;
 		this->handler.addClient(currSocket);
-		//enter control section for the server. for now only one command - /shutdown
-		//cout << "sending disconnection signals" << endl;
-		// this->threadManager->disconnectAll();
-		// cout << "shutting the server down" << endl;
-		// this->control->shutdown;
 	}
 	WSACleanup();
 	return 0;
