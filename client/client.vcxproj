@@ -19,12 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MessageReceiver.h" />
+    <ClInclude Include="MessageHandler.h" />
     <ClInclude Include="MyClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="client.cpp" />
-    <ClCompile Include="MessageReceiver.cpp" />
+    <ClCompile Include="MessageHandler.cpp" />
     <ClCompile Include="MyClient.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
